@@ -503,8 +503,8 @@ p{margin:0 0 15px;color:#626262}
   .program-ornament{display:block;font-size:16px}
   .site-footer{padding:42px 20px 96px}
   .footer-main{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"brand brand" "nav contacts";column-gap:20px;row-gap:20px}
-  .footer-brand{grid-area:brand;padding:0 0 20px;border-bottom:1px solid rgba(255,255,255,.24)}
-  .footer-signature{width:min(100%,270px);margin-bottom:8px}
+  .footer-brand{grid-area:brand;padding:0 0 20px;border-bottom:1px solid rgba(255,255,255,.24);text-align:center}
+  .footer-signature{width:min(100%,270px);margin:0 auto 8px}
   .site-footer .footer-brand p{font-size:15px}
   .footer-nav,.footer-contacts{border:0;padding:0;min-width:0}
   .footer-nav{grid-area:nav}
