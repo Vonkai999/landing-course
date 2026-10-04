@@ -1,4 +1,21 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const startDateLabel = document.querySelector("[data-start-date]");
+  if (startDateLabel) {
+    const updateStartDate = () => {
+      const dateParts = new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Europe/Warsaw",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).formatToParts(new Date());
+      const parts = Object.fromEntries(dateParts.map(part => [part.type, part.value]));
+      const nextDay = new Date(Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day) + 1));
+      startDateLabel.textContent = `${String(nextDay.getUTCDate()).padStart(2, "0")}.${String(nextDay.getUTCMonth() + 1).padStart(2, "0")}`;
+    };
+    updateStartDate();
+    window.setInterval(updateStartDate, 60_000);
+  }
+
   document.querySelectorAll(".faq details").forEach(details => {
     const summary = details.querySelector("summary");
     const answer = details.querySelector("summary + p");
