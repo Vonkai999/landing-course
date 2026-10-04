@@ -502,16 +502,18 @@ p{margin:0 0 15px;color:#626262}
   .program-cta{width:100%;min-height:58px;margin-top:22px!important;padding:15px 13px;font-size:12px}
   .program-ornament{display:block;font-size:16px}
   .site-footer{padding:42px 20px 96px}
-  .footer-main{grid-template-columns:1fr;gap:20px}
-  .footer-brand{padding:0 0 20px;border-bottom:1px solid rgba(255,255,255,.24)}
+  .footer-main{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"brand brand" "nav contacts";column-gap:20px;row-gap:20px}
+  .footer-brand{grid-area:brand;padding:0 0 20px;border-bottom:1px solid rgba(255,255,255,.24)}
   .footer-signature{width:min(100%,270px);margin-bottom:8px}
   .site-footer .footer-brand p{font-size:15px}
-  .footer-nav,.footer-contacts{border:0;padding:0}
-  .footer-nav h2,.footer-contacts h2{margin-bottom:15px;font-size:10px}
-  .footer-nav a{margin-bottom:10px;font-size:15px}
-  .footer-contacts>a{gap:15px;margin-bottom:12px;font-size:16px}
-  .footer-contacts svg{width:27px;height:27px;flex-basis:27px}
-  .footer-contacts small{font-size:13px}
+  .footer-nav,.footer-contacts{border:0;padding:0;min-width:0}
+  .footer-nav{grid-area:nav}
+  .footer-contacts{grid-area:contacts}
+  .footer-nav h2,.footer-contacts h2{margin-bottom:15px;font-size:9px;letter-spacing:.24em}
+  .footer-nav a{margin-bottom:10px;font-size:13px;overflow-wrap:anywhere}
+  .footer-contacts>a{gap:9px;margin-bottom:12px;font-size:14px}
+  .footer-contacts svg{width:24px;height:24px;flex-basis:24px}
+  .footer-contacts small{font-size:11px;overflow-wrap:anywhere}
   .footer-bottom{align-items:flex-start;flex-direction:column;gap:16px;margin-top:20px;padding-top:20px}
   .site-footer .footer-bottom p{font-size:11px}
   .footer-heel{align-self:flex-end;gap:12px}
