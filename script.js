@@ -44,8 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
     observer.observe(hero);
   }
 
-  const checkoutButtons = [...document.querySelectorAll("[data-stripe-checkout]")];
-  const checkoutButton = checkoutButtons[0];
+  const checkoutButton = document.querySelector("[data-stripe-checkout]");
   const checkoutStatus = document.querySelector(".checkout-status");
   const telegramOpenButton = document.querySelector(".telegram-open");
   if (checkoutButton && checkoutStatus) {
@@ -54,31 +53,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const checkoutParams = new URLSearchParams(window.location.search);
     const checkoutCompleted = checkoutParams.get("checkout") === "complete";
 
-    const setCheckoutButtonsDisabled = (disabled, busyButton = null) => {
-      checkoutButtons.forEach(button => {
-        if (disabled) button.setAttribute("aria-disabled", "true");
-        else button.removeAttribute("aria-disabled");
-        if (button === busyButton) button.setAttribute("aria-busy", "true");
-        else button.removeAttribute("aria-busy");
-      });
-    };
-
     const showPaidState = (telegramUrl, autoOpen) => {
       checkoutStatus.hidden = false;
       checkoutStatus.textContent = autoOpen
         ? "Оплата подтверждена! Сейчас откроется Telegram. Если переход не сработал, нажми «Открыть Telegram»."
         : "Оплата подтверждена. Нажми, чтобы продолжить в Telegram.";
-      checkoutButtons.forEach(button => {
-        button.classList.add("is-paid");
-        button.setAttribute("aria-disabled", "true");
-        const checkoutLabel = button.querySelector(".final-cta-label") || button;
-        if (button === checkoutButton) {
-          const label = button.querySelector(".final-cta-label");
-          if (label) label.textContent = button.dataset.paidLabel || "КУРС ОПЛАЧЕН";
-        } else {
-          checkoutLabel.textContent = button.dataset.paidLabel || "КУРС ОПЛАЧЕН";
-        }
-      });
+      checkoutButton.hidden = false;
+      checkoutButton.classList.add("is-paid");
+      checkoutButton.setAttribute("aria-disabled", "true");
+      checkoutButton.removeAttribute("aria-busy");
+      const checkoutLabel = checkoutButton.querySelector(".final-cta-label");
+      if (checkoutLabel) checkoutLabel.textContent = checkoutButton.dataset.paidLabel || "КУРС ОПЛАЧЕН";
       const sticky = document.querySelector(".sticky");
       if (sticky) sticky.hidden = true;
       if (telegramOpenButton) {
@@ -170,19 +155,19 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    checkoutButtons.forEach(button => button.addEventListener("click", async event => {
+    checkoutButton.addEventListener("click", async event => {
       event.preventDefault();
-      if (button.getAttribute("aria-disabled") === "true") return;
+      if (checkoutButton.getAttribute("aria-disabled") === "true") return;
 
-      setCheckoutButtonsDisabled(true, button);
+      checkoutButton.setAttribute("aria-disabled", "true");
+      checkoutButton.setAttribute("aria-busy", "true");
       checkoutStatus.hidden = false;
       checkoutStatus.textContent = "Готовим безопасную страницу оплаты…";
 
       try {
         const response = await fetch("/api/create-checkout-session", {
           method: "POST",
-          headers: { "Accept": "application/json", "Content-Type": "application/json" },
-          body: JSON.stringify({ currency: button.dataset.currency || "uah" })
+          headers: { "Accept": "application/json" }
         });
         const result = await response.json();
         if (!response.ok || !result.url || !result.recovery_token) throw new Error(result.error || "Не удалось открыть оплату.");
@@ -194,9 +179,10 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.assign(result.url);
       } catch (error) {
         checkoutStatus.textContent = error.message || "Не удалось открыть оплату. Попробуй ещё раз.";
-        setCheckoutButtonsDisabled(false);
+        checkoutButton.removeAttribute("aria-disabled");
+        checkoutButton.removeAttribute("aria-busy");
       }
-    }));
+    });
 
     // Browsers can restore the pre-Stripe page from the back-forward cache
     // without firing DOMContentLoaded again. Re-run the saved-purchase check
@@ -214,20 +200,24 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch { return false; }
       })();
       if (!hasSavedCheckout) {
-        setCheckoutButtonsDisabled(false);
+        checkoutButton.removeAttribute("aria-disabled");
+        checkoutButton.removeAttribute("aria-busy");
         checkoutStatus.hidden = true;
         checkoutStatus.textContent = "";
         return;
       }
-      setCheckoutButtonsDisabled(true, checkoutButton);
+      checkoutButton.setAttribute("aria-disabled", "true");
+      checkoutButton.setAttribute("aria-busy", "true");
       checkoutStatus.hidden = false;
       checkoutStatus.textContent = "Проверяем оплату Stripe…";
       recoverSavedPurchase(false).then(recovered => {
         if (recovered) return;
-        setCheckoutButtonsDisabled(false);
+        checkoutButton.removeAttribute("aria-disabled");
+        checkoutButton.removeAttribute("aria-busy");
         checkoutStatus.textContent = "Stripe пока не подтвердил оплату. Если оплата уже прошла, не оплачивай повторно и напиши нам.";
       }).catch(() => {
-        setCheckoutButtonsDisabled(false);
+        checkoutButton.removeAttribute("aria-disabled");
+        checkoutButton.removeAttribute("aria-busy");
         checkoutStatus.textContent = "Не удалось проверить оплату. Если ты уже оплатила, не запускай оплату повторно — напиши нам.";
       });
     });
