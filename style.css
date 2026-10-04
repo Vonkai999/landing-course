@@ -410,8 +410,8 @@ footer p{color:#777;font-size:11px}
   .results{padding-bottom:30px}
   .reviews{padding-top:34px}
   .results-play span{border-top-width:9px;border-bottom-width:9px;border-left-width:14px}
-  .review-grid{display:flex!important;gap:10px;transition:transform .3s ease}
-  .review-grid .review-card{flex:0 0 100%;min-width:0}
+  .review-grid{display:flex!important;width:100%;gap:0;transition:transform .3s ease}
+  .review-grid .review-card{flex:0 0 100%;width:100%;min-width:0;box-sizing:border-box}
   .review-dots{margin-top:16px!important}
   .review-cta{min-height:58px;margin-top:24px!important;padding:15px 18px;font-size:14px}
   .reviews-flourish{margin-top:20px!important}
@@ -459,8 +459,8 @@ footer p{color:#777;font-size:11px}
   .final .telegram-open{min-height:64px;font-size:20px}
   .promise-title{font-size:clamp(32px,8.8vw,46px);margin-bottom:26px}
   .promise-checklist{margin-bottom:26px!important}
-  .promise-checklist li{gap:13px;padding:19px 0}
-  .promise-checklist p{font-size:16px;line-height:1.45}
+  .promise-checklist li{width:100%;min-width:0;gap:13px;padding:19px 0;transform:none}
+  .promise-checklist p{min-width:0;font-size:16px;line-height:1.45;overflow-wrap:break-word}
   .promise-check{flex-basis:30px;width:30px;height:30px}
   .promise-statement{font-size:24px}
   .promise-cta{min-height:58px;padding:15px 18px;font-size:13px;letter-spacing:.05em}
