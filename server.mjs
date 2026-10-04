@@ -29,7 +29,7 @@ const sendPulsePaidFlowId = process.env.SENDPULSE_PAID_FLOW_ID;
 const claimStoreDir = join(projectDir, ".private");
 const claimStorePath = join(claimStoreDir, "telegram-claims.json");
 const publicFiles = new Set([
-  "/", "/index.html", "/style.css", "/script.js",
+  "/", "/index.html", "/offer.html", "/style.css", "/script.js",
   "/IMG_2914.PNG", "/IMG_3957.PNG", "/IMG_3958.PNG", "/IMG_3959.PNG",
   "/IMG_3960.PNG", "/IMG_3961.PNG", "/IMG_3972.PNG", "/IMG_3973.mp4",
   "/IMG_4038.mp4", "/IMG_4055.PNG", "/IMG_4061.JPG", "/IMG_4064.JPG",
