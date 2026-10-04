@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
+import { createReadStream } from "node:fs";
 import { createServer } from "node:http";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import { dirname, extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -356,6 +357,57 @@ const server = createServer(async (request, response) => {
 
   const filePath = requestUrl.pathname === "/" ? "index.html" : requestUrl.pathname.slice(1);
   try {
+    if (extname(filePath).toLowerCase() === ".mp4") {
+      const absolutePath = join(projectDir, filePath);
+      const { size } = await stat(absolutePath);
+      const rangeHeader = request.headers.range;
+      const rangeMatch = typeof rangeHeader === "string"
+        ? rangeHeader.match(/^bytes=(\d*)-(\d*)$/)
+        : null;
+
+      if (rangeMatch && size > 0) {
+        let start;
+        let end;
+        if (rangeMatch[1] === "") {
+          const suffixLength = Number(rangeMatch[2]);
+          if (suffixLength <= 0) {
+            response.writeHead(416, { "Content-Range": `bytes */${size}`, "Accept-Ranges": "bytes" });
+            return response.end();
+          }
+          start = Math.max(size - suffixLength, 0);
+          end = size - 1;
+        } else {
+          start = Number(rangeMatch[1]);
+          end = rangeMatch[2] === "" ? size - 1 : Number(rangeMatch[2]);
+        }
+
+        if (start >= size || start > end) {
+          response.writeHead(416, { "Content-Range": `bytes */${size}`, "Accept-Ranges": "bytes" });
+          return response.end();
+        }
+
+        end = Math.min(end, size - 1);
+        response.writeHead(206, {
+          "Content-Type": "video/mp4",
+          "Content-Length": end - start + 1,
+          "Content-Range": `bytes ${start}-${end}/${size}`,
+          "Accept-Ranges": "bytes",
+          "Cache-Control": "public, max-age=3600"
+        });
+        if (request.method === "HEAD") return response.end();
+        return createReadStream(absolutePath, { start, end }).pipe(response);
+      }
+
+      response.writeHead(200, {
+        "Content-Type": "video/mp4",
+        "Content-Length": size,
+        "Accept-Ranges": "bytes",
+        "Cache-Control": "public, max-age=3600"
+      });
+      if (request.method === "HEAD") return response.end();
+      return createReadStream(absolutePath).pipe(response);
+    }
+
     const file = await readFile(join(projectDir, filePath));
     response.writeHead(200, {
       "Content-Type": contentTypes[extname(filePath).toLowerCase()] || "application/octet-stream",
