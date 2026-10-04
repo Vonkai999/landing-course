@@ -6,7 +6,10 @@ import { fileURLToPath } from "node:url";
 
 const projectDir = dirname(fileURLToPath(import.meta.url));
 const courseId = "highheels_5day_v1";
-const coursePrice = 39000; // 390 UAH, expressed in kopiykas for Stripe.
+const coursePrices = Object.freeze({
+  uah: 39000, // 390 UAH, expressed in kopiykas for Stripe.
+  pln: 3499 // 34.99 PLN, expressed in groszy for Stripe.
+});
 const claimLifetimeMs = 24 * 60 * 60 * 1000;
 
 // Read a local .env without adding dependencies. On a hosting service, set these
@@ -99,9 +102,10 @@ async function getStripeSession(sessionId) {
 }
 
 function isPaidCourseSession(session) {
+  const expectedAmount = session && coursePrices[session.currency];
   return Boolean(
     session && session.mode === "payment" && session.payment_status === "paid" &&
-    session.currency === "uah" && session.amount_total === coursePrice &&
+    expectedAmount && session.amount_total === expectedAmount &&
     session.metadata?.course_id === courseId
   );
 }
@@ -181,12 +185,15 @@ async function redeemClaimToken(token, subscriberId) {
   });
 }
 
-async function createCheckoutSession() {
+async function createCheckoutSession(currency) {
+  const productName = currency === "pln"
+    ? "Kurs online High Heels w domu"
+    : "Онлайн-курс High Heels дома";
   const form = new URLSearchParams({
     mode: "payment",
-    "line_items[0][price_data][currency]": "uah",
-    "line_items[0][price_data][unit_amount]": String(coursePrice),
-    "line_items[0][price_data][product_data][name]": "Онлайн-курс High Heels дома",
+    "line_items[0][price_data][currency]": currency,
+    "line_items[0][price_data][unit_amount]": String(coursePrices[currency]),
+    "line_items[0][price_data][product_data][name]": productName,
     "line_items[0][quantity]": "1",
     "metadata[course_id]": courseId,
     success_url: `${baseUrl}/?checkout=complete&session_id={CHECKOUT_SESSION_ID}#buy`,
@@ -238,7 +245,12 @@ const server = createServer(async (request, response) => {
     if (!isSameSiteRequest(request)) return sendJson(response, 403, { error: "Запрос оплаты отклонён." });
 
     try {
-      const session = await createCheckoutSession();
+      const body = await readJsonBody(request);
+      const currency = body.currency || "uah";
+      if (!Object.hasOwn(coursePrices, currency)) {
+        return sendJson(response, 400, { error: "Выбери доступную валюту оплаты." });
+      }
+      const session = await createCheckoutSession(currency);
       const recoveryToken = await createRecoveryToken(session.id);
       return sendJson(response, 200, {
         url: session.url,
