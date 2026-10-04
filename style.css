@@ -369,7 +369,7 @@ footer p{color:#777;font-size:11px}
   .hero h1 span{margin-top:2px;font-size:.98em}
   .hero-script{font-size:clamp(10px,3.1vw,15px);padding:7px 12px;margin:0 auto 12px;border-radius:999px;letter-spacing:0;line-height:1.15}
   .hero-lead{max-width:430px;margin:0 auto;font-size:13px;line-height:1.35;color:rgba(255,255,255,.9)}
-  .hero-signature{margin-top:5px;font-size:clamp(25px,7vw,34px)}
+  .hero-signature{margin-top:5px;font-size:clamp(23px,6.5vw,32px)}
   .author.section{padding:42px 20px 30px}
   .author .eyebrow{gap:10px;margin-bottom:14px!important;font-size:9px;letter-spacing:.25em}
   .author h2.author-title{font-size:clamp(60px,15vw,88px);margin-bottom:18px!important}
