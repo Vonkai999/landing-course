@@ -1,4 +1,39 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const homeScrollKey = "highheels_home_scroll";
+  const homeScrollPendingKey = "highheels_home_scroll_pending";
+  const isHomePage = window.location.pathname === "/" || window.location.pathname.endsWith("/index.html");
+
+  // Keep the browser's native back/forward restoration, and also remember the
+  // landing-page position when someone opens a legal page and then returns home.
+  if ("scrollRestoration" in window.history) window.history.scrollRestoration = "auto";
+  if (isHomePage) {
+    document.addEventListener("click", event => {
+      const link = event.target.closest("a[href]");
+      if (!link) return;
+
+      const destination = new URL(link.href, window.location.href);
+      if (destination.origin !== window.location.origin || !/\/(offer|privacy)\.html$/i.test(destination.pathname)) return;
+
+      try {
+        window.sessionStorage.setItem(homeScrollKey, String(window.scrollY));
+        window.sessionStorage.setItem(homeScrollPendingKey, "1");
+      } catch { /* Native browser scroll restoration remains available. */ }
+    });
+
+    window.addEventListener("pageshow", () => {
+      let savedPosition;
+      try {
+        if (window.sessionStorage.getItem(homeScrollPendingKey) !== "1") return;
+        savedPosition = Number(window.sessionStorage.getItem(homeScrollKey));
+        window.sessionStorage.removeItem(homeScrollPendingKey);
+        window.sessionStorage.removeItem(homeScrollKey);
+      } catch { return; }
+
+      if (!Number.isFinite(savedPosition)) return;
+      window.requestAnimationFrame(() => window.scrollTo(0, savedPosition));
+    });
+  }
+
   const startDateLabel = document.querySelector("[data-start-date]");
   if (startDateLabel) {
     const updateStartDate = () => {
