@@ -98,8 +98,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const checkoutButton = document.querySelector("[data-stripe-checkout]");
   const checkoutStatus = document.querySelector(".checkout-status");
+  const purchaseConsent = document.querySelector("#purchase-consent");
   const telegramOpenButton = document.querySelector(".telegram-open");
   if (checkoutButton && checkoutStatus) {
+    checkoutButton.disabled = !purchaseConsent?.checked;
+    checkoutButton.setAttribute("aria-disabled", String(checkoutButton.disabled));
+
+    purchaseConsent?.addEventListener("change", () => {
+      if (checkoutButton.classList.contains("is-paid")) return;
+      checkoutButton.disabled = !purchaseConsent.checked;
+      checkoutButton.setAttribute("aria-disabled", String(checkoutButton.disabled));
+    });
+
     const recoveryStorageKey = "highheels_checkout_recovery";
     const sessionStorageKey = "highheels_checkout_session";
     const checkoutParams = new URLSearchParams(window.location.search);
@@ -111,6 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ? "Оплата подтверждена! Сейчас откроется Telegram. Если переход не сработал, нажми «Открыть Telegram»."
         : "Оплата подтверждена. Нажми, чтобы продолжить в Telegram.";
       checkoutButton.hidden = false;
+      checkoutButton.disabled = true;
       checkoutButton.classList.add("is-paid");
       checkoutButton.setAttribute("aria-disabled", "true");
       checkoutButton.removeAttribute("aria-busy");
@@ -209,8 +220,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     checkoutButton.addEventListener("click", async event => {
       event.preventDefault();
-      if (checkoutButton.getAttribute("aria-disabled") === "true") return;
+      if (checkoutButton.disabled || !purchaseConsent?.checked) return;
 
+      checkoutButton.disabled = true;
       checkoutButton.setAttribute("aria-disabled", "true");
       checkoutButton.setAttribute("aria-busy", "true");
       checkoutStatus.hidden = false;
@@ -231,7 +243,8 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.assign(result.url);
       } catch (error) {
         checkoutStatus.textContent = error.message || "Не удалось открыть оплату. Попробуй ещё раз.";
-        checkoutButton.removeAttribute("aria-disabled");
+        checkoutButton.disabled = !purchaseConsent.checked;
+        checkoutButton.setAttribute("aria-disabled", String(checkoutButton.disabled));
         checkoutButton.removeAttribute("aria-busy");
       }
     });
@@ -252,23 +265,27 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch { return false; }
       })();
       if (!hasSavedCheckout) {
-        checkoutButton.removeAttribute("aria-disabled");
+        checkoutButton.disabled = !purchaseConsent?.checked;
+        checkoutButton.setAttribute("aria-disabled", String(checkoutButton.disabled));
         checkoutButton.removeAttribute("aria-busy");
         checkoutStatus.hidden = true;
         checkoutStatus.textContent = "";
         return;
       }
+      checkoutButton.disabled = true;
       checkoutButton.setAttribute("aria-disabled", "true");
       checkoutButton.setAttribute("aria-busy", "true");
       checkoutStatus.hidden = false;
       checkoutStatus.textContent = "Проверяем оплату Stripe…";
       recoverSavedPurchase(false).then(recovered => {
         if (recovered) return;
-        checkoutButton.removeAttribute("aria-disabled");
+        checkoutButton.disabled = !purchaseConsent?.checked;
+        checkoutButton.setAttribute("aria-disabled", String(checkoutButton.disabled));
         checkoutButton.removeAttribute("aria-busy");
         checkoutStatus.textContent = "Stripe пока не подтвердил оплату. Если оплата уже прошла, не оплачивай повторно и напиши нам.";
       }).catch(() => {
-        checkoutButton.removeAttribute("aria-disabled");
+        checkoutButton.disabled = !purchaseConsent?.checked;
+        checkoutButton.setAttribute("aria-disabled", String(checkoutButton.disabled));
         checkoutButton.removeAttribute("aria-busy");
         checkoutStatus.textContent = "Не удалось проверить оплату. Если ты уже оплатила, не запускай оплату повторно — напиши нам.";
       });
